@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Email Verification</title>
+</head>
+<body>
+<p>Hello, <span th:text="${user.firstname}"></span> <span th:text="${user.lastname}"></span>!</p>
+<p>Please verify your email by clicking the link below:</p>
+<a th:href="@{${redirectUrl}}">Verify Email</a>
+</body>
+</html>
