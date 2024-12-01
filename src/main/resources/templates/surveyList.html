@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: header}"></head>
+<body>
+<nav th:replace="~{fragments/navbar :: navbarFragment}"></nav>
+
+<div class="flex flex-col items-center justify-center min-h-screen bg-gray-100 py-8">
+    <h1 class="text-3xl font-bold text-center mb-6">Your Surveys</h1>
+
+    <div th:if="${surveysByMonth.isEmpty()}" class="text-center text-lg text-gray-500">
+        <p>You have no surveys submitted.</p>
+    </div>
+
+    <div th:each="entry : ${surveysByMonth}" class="w-full max-w-4xl px-4">
+        <div class="mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4" th:text="${entry.key.toString()}"></h2>
+
+            <div class="overflow-x-auto bg-white shadow-md rounded-lg">
+                <table class="min-w-full table-auto">
+                    <thead class="bg-gray-100">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Survey ID</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Created At</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Satisfaction Rate</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Recommendation</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                    <tr th:each="survey : ${entry.value}" class="hover:bg-gray-50">
+                        <td class="px-6 py-4 text-sm font-medium text-gray-800" th:text="${survey.id}"></td>
+                        <td class="px-6 py-4 text-sm text-gray-600" th:text="${survey.createdAt}"></td>
+                        <td class="px-6 py-4 text-sm text-gray-600" th:text="${survey.qualitySatisfactionRate}"></td>
+                        <td class="px-6 py-4 text-sm text-gray-600" th:text="${survey.recommend ? 'Yes' : 'No'}"></td>
+                        <td class="px-6 py-4 text-sm">
+                            <a href="#" class="text-blue-600 hover:text-blue-900" th:href="@{/survey/{id}(id=${survey.id})}">Edit</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Button to create a new survey -->
+    <div class="mt-6">
+        <form th:action="@{/survey/create}" method="post">
+            <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700">Create New Survey</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

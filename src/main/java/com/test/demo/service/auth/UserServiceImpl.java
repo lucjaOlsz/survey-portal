@@ -65,8 +65,8 @@ public class UserServiceImpl implements UserService {
         String encodedToken = token.encode();
 
         /* Guess it works fast enough lol, consider async */
-        EmailStrategy verificationEmailStrategy = new VerificationEmailStrategy(user, encodedToken);
-        emailService.sendEmail(verificationEmailStrategy, user.getEmail());
+//        EmailStrategy verificationEmailStrategy = new VerificationEmailStrategy(user, encodedToken);
+//        emailService.sendEmail(verificationEmailStrategy, user.getEmail());
     }
 
     public boolean verifyUser(String token) {
