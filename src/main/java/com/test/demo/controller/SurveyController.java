@@ -3,105 +3,72 @@ package com.test.demo.controller;
 import com.test.demo.model.Survey;
 import com.test.demo.model.User;
 import com.test.demo.repository.UserRepository;
-import com.test.demo.service.survey.SurveyServiceImpl;
+import com.test.demo.service.survey.SurveyService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
+import java.time.YearMonth;
 import java.util.List;
+import java.util.Map;
+
 
 @Controller
 @RequestMapping("/survey")
 public class SurveyController {
-
-    private final SurveyServiceImpl surveyService;
+    private final SurveyService surveyService;
     private final UserRepository userRepository;
 
     @Autowired
-    public SurveyController(SurveyServiceImpl surveyService, UserRepository userRepository) {
+    public SurveyController(SurveyService surveyService, UserRepository userRepository) {
         this.surveyService = surveyService;
         this.userRepository = userRepository;
     }
 
     @GetMapping
-    @ResponseBody
-    public List<Survey> getUserSurveys(Principal principal) {
-        if (principal == null) {
-            throw new RuntimeException("User not logged in");
-        }
-
-        String userEmail = principal.getName();
+    public String getUserSurveys(Authentication authentication, Model model) {
+        String userEmail = authentication.getName();
         User currentUser = userRepository.findByEmail(userEmail).orElseThrow();
-
-        return surveyService.getSurveysByUserId(currentUser.getId());
+        Map<YearMonth, List<Survey>> surveysByMonth = surveyService.getSurveysGroupedByMonth(currentUser.getId());
+        model.addAttribute("surveysByMonth", surveysByMonth);
+        return "surveyList";
     }
 
-    @PostMapping("/createSurvey")
-    @ResponseBody
-    public String createSurvey(@ModelAttribute Survey survey, Principal principal) {
-        if (principal == null) {
-            return "log in first";
-        }
-
-        String userEmail = principal.getName();
+    @PostMapping
+    public String createSurvey(Authentication authentication) {
+        String userEmail = authentication.getName();
         User user = userRepository.findByEmail(userEmail).orElseThrow();
-        survey.setUser(user);
-        surveyService.saveSurvey(survey);
-
-        return "Survey created successfully";
+        /// TODO: Add message if survey already exists
+        try {
+            Survey newSurvey = surveyService.createSurvey(user);
+            return "redirect:/survey/" + newSurvey.getId();
+        } catch (Exception e) {
+            return "redirect:/survey?error=already-created";
+        }
     }
 
     // Metoda GET - wyświetlanie ankiety (bez zmian)
-    @GetMapping("/survey/{id}")
-    public String getSurvey(@PathVariable Long id, Principal principal, Model model) {
-        if (principal == null) {
-            return "redirect:/login";
-        }
-
-        String userEmail = principal.getName();
-        User currentUser = userRepository.findByEmail(userEmail).orElseThrow();
-
-        Survey foundSurvey = surveyService.findById(id)
-                .orElseThrow(() -> new RuntimeException("Survey not found"));
-
-        if (!foundSurvey.getUser().getId().equals(currentUser.getId())) {
-            return "redirect:/access-denied";
-        }
-
-        if (foundSurvey.isSubmitted()) {
-            return "redirect:/survey/" + id + "?error=already-submitted";
-        }
-
-        Model survey = model.addAttribute("survey", foundSurvey);
+    @GetMapping("/{survey}")
+    @PreAuthorize("@surveyServiceImpl.isSurveyOwner(#survey.id, authentication.name)")
+    public String getSurvey(@PathVariable Survey survey, Authentication authentication, Model model) {
+        model.addAttribute("survey", survey);
         return "surveyDetail";
     }
 
+
     // Metoda PATCH - edytowanie ankiety
-    @PatchMapping("/survey/{id}")
-    public String updateSurvey(@PathVariable Long id,
-                               @ModelAttribute Survey updatedSurvey,
-                               Principal principal,
-                               BindingResult bindingResult) {
-
-        if (principal == null) {
-            return "redirect:/login";
-        }
-
-        String userEmail = principal.getName();
-        User currentUser = userRepository.findByEmail(userEmail).orElseThrow();
-        Survey existingSurvey = surveyService.findById(id)
-                .orElseThrow(() -> new RuntimeException("Survey not found"));
-
-        // Sprawdzamy, czy użytkownik jest właścicielem ankiety
-        if (!existingSurvey.getUser().getId().equals(currentUser.getId())) {
-            return "redirect:/access-denied";
-        }
+    @PatchMapping("/{survey}")
+    @PreAuthorize("@surveyServiceImpl.isSurveyOwner(#survey.id, authentication.name)")
+    public String updateSurvey(@PathVariable Survey survey, @ModelAttribute Survey updatedSurvey, Authentication authentication, BindingResult bindingResult) {
+        Long id = survey.getId();
 
         // Sprawdzamy, czy ankieta została już wysłana
-        if (existingSurvey.isSubmitted()) {
+        if (survey.isSubmitted()) {
+            /// TODO: refactor these query params
             return "redirect:/survey/" + id + "?error=already-submitted";
         }
 
@@ -111,15 +78,22 @@ public class SurveyController {
         }
 
         // Aktualizacja ankiety na podstawie danych z formularza
-        existingSurvey.setProfessionalismComment(updatedSurvey.getProfessionalismComment());
-        existingSurvey.setTimeComment(updatedSurvey.getTimeComment());
-        existingSurvey.setHighTrafficComment(updatedSurvey.getHighTrafficComment());
-        existingSurvey.setCommunicationComment(updatedSurvey.getCommunicationComment());
-        existingSurvey.setAreasForImprovement(updatedSurvey.getAreasForImprovement());
-        existingSurvey.setRecommendationComment(updatedSurvey.getRecommendationComment());
+        survey.setQualitySatisfactionRate(updatedSurvey.getQualitySatisfactionRate());
+        survey.setProfessionalismRate(updatedSurvey.getProfessionalismRate());
+        survey.setProfessionalismComment(updatedSurvey.getProfessionalismComment());
+        survey.setCompletedOnTime(updatedSurvey.isCompletedOnTime());
+        survey.setTimeComment(updatedSurvey.getTimeComment());
+        survey.setHighTrafficHandlingRate(updatedSurvey.getHighTrafficHandlingRate());
+        survey.setHighTrafficComment(updatedSurvey.getHighTrafficComment());
+        survey.setCommunicationEffective(updatedSurvey.isCommunicationEffective());
+        survey.setCommunicationComment(updatedSurvey.getCommunicationComment());
+        survey.setProductsSatisfactionRate(updatedSurvey.getProductsSatisfactionRate());
+        survey.setAreasForImprovement(updatedSurvey.getAreasForImprovement());
+        survey.setRecommend(updatedSurvey.isRecommend());
+        survey.setRecommendationComment(updatedSurvey.getRecommendationComment());
 
         // Zapisanie zaktualizowanej ankiety
-        surveyService.saveSurvey(existingSurvey);
+        surveyService.saveSurvey(survey);
 
         // Po edytowaniu przekierowujemy do szczegółów ankiety
         return "redirect:/survey/" + id;

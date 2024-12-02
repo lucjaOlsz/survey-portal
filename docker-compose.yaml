@@ -10,6 +10,12 @@ services:
     env_file:
       - .env
 
+  frontend:
+    image: frontend-build
+    build:
+      context: ./src/main/frontend
+      dockerfile: Dockerfile
+
   webserver:
     build:
       context: ngnix
@@ -24,6 +30,7 @@ services:
   webapp:
     build:
       context: .
+      dockerfile: Dockerfile
       target: build
     ports:
       - "8080:8080"
@@ -31,6 +38,7 @@ services:
     volumes:
       - .:/app
     depends_on:
+      - frontend
       - database
     env_file:
       - .env

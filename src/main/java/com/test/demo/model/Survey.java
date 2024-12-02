@@ -5,6 +5,8 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
 @Entity
 @Table(name = "surveys")
@@ -18,6 +20,13 @@ public class Survey {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+
+    @Column(name = "submitted_at")
+    private LocalDateTime submittedAt;
 
     // Question 1: Satisfaction with overall quality
     @Min(1)
@@ -81,10 +90,4 @@ public class Survey {
 
     @Column(name = "is_submitted")
     private boolean isSubmitted = false;
-
-    public Object getDescription() {
-    }
-
-    public Long getTitle() {
-    }
 }
