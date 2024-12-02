@@ -3,7 +3,7 @@ package com.test.demo.controller;
 import com.test.demo.model.Survey;
 import com.test.demo.model.User;
 import com.test.demo.repository.UserRepository;
-import com.test.demo.service.survey.SurveyServiceImpl;
+import com.test.demo.service.survey.SurveyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -12,21 +12,19 @@ import org.springframework.validation.BindingResult;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+
 
 @Controller
 @RequestMapping("/survey")
 public class SurveyController {
-
-    private final SurveyServiceImpl surveyService;
+    private final SurveyService surveyService;
     private final UserRepository userRepository;
 
     @Autowired
-    public SurveyController(SurveyServiceImpl surveyService, UserRepository userRepository) {
+    public SurveyController(SurveyService surveyService, UserRepository userRepository) {
         this.surveyService = surveyService;
         this.userRepository = userRepository;
     }
@@ -40,7 +38,7 @@ public class SurveyController {
         return "surveyList";
     }
 
-    @PostMapping("/create")
+    @PostMapping
     public String createSurvey(Authentication authentication) {
         String userEmail = authentication.getName();
         User user = userRepository.findByEmail(userEmail).orElseThrow();
@@ -54,10 +52,9 @@ public class SurveyController {
     }
 
     // Metoda GET - wyświetlanie ankiety (bez zmian)
-    @GetMapping("/survey/{id}")
-    @PreAuthorize("@surveyServiceImpl.isSurveyOwner(#id, authentication.name)")
-    public String getSurvey(@PathVariable Long id, Authentication authentication, Model model) {
-        Survey survey = surveyService.getSurveyById(id).orElseThrow(() -> new IllegalArgumentException("Survey not found"));
+    @GetMapping("/{survey}")
+    @PreAuthorize("@surveyServiceImpl.isSurveyOwner(#survey.id, authentication.name)")
+    public String getSurvey(@PathVariable Survey survey, Authentication authentication, Model model) {
         model.addAttribute("survey", survey);
         return "surveyDetail";
     }
