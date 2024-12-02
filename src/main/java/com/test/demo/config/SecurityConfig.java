@@ -47,7 +47,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/register", "/verify-email", "/login", "/survey/", "/main.css", "spongebob.jpeg").permitAll()
+                        .requestMatchers("/register", "/verify-email", "/login","/main.css").permitAll()
+                        .requestMatchers("/survey/").hasRole("DEFAULT")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
