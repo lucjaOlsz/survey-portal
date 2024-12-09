@@ -3,6 +3,7 @@ package com.test.demo.service.survey;
 import com.test.demo.model.Survey;
 import com.test.demo.model.User;
 
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;
@@ -15,4 +16,6 @@ public interface SurveyService {
     Survey createSurvey(User user);
     void saveSurvey(Survey survey);
     void submitSurvey(Survey survey);
+    List<Survey> getAllSurveysSubmitted();
+
 }

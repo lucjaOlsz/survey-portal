@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: header}"></head>
+<body>
+<nav th:replace="~{fragments/navbar :: navbarFragment}"></nav>
+<div class="flex items-center justify-center min-h-screen bg-gray-100">
+    <div class="container mx-auto p-6">
+        <h1 class="text-2xl font-bold mb-4">Survey Ratings Dashboard</h1>
+
+        <div class="mb-4">
+            <h2 class="text-lg font-semibold">Average Ratings:</h2>
+            <ul class="list-disc pl-5">
+                <li>Quality Satisfaction:
+                    <span th:text="${avgQualitySatisfactionRate}"></span>
+                </li>
+                <li>Professionalism:
+                    <span th:text="${avgProfessionalismRate}"></span>
+                </li>
+                <li>Traffic Handling:
+                    <span th:text="${avgHighTrafficHandlingRate}"></span>
+                </li>
+                <li>Product Satisfaction:
+                    <span th:text="${avgProductsSatisfactionRate}"></span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="relative overflow-x-auto mb-8">
+            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                <tr>
+                    <th scope="col" class="px-6 py-3">Survey ID</th>
+                    <th scope="col" class="px-6 py-3">Quality Satisfaction</th>
+                    <th scope="col" class="px-6 py-3">Professionalism</th>
+                    <th scope="col" class="px-6 py-3">Traffic Handling</th>
+                    <th scope="col" class="px-6 py-3">Product Satisfaction</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="survey : ${surveys}" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                    <td class="px-6 py-4" th:text="${survey.id}"></td>
+                    <td class="px-6 py-4" th:text="${survey.qualitySatisfactionRate}"></td>
+                    <td class="px-6 py-4" th:text="${survey.professionalismRate}"></td>
+                    <td class="px-6 py-4" th:text="${survey.highTrafficHandlingRate}"></td>
+                    <td class="px-6 py-4" th:text="${survey.productsSatisfactionRate}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script src="/frontend/node_modules/flowbite/dist/flowbite.js"></script>
+</body>
+</html>

@@ -5,6 +5,7 @@ import com.test.demo.exceptions.SurveyAlreadySubmittedException;
 import com.test.demo.model.Survey;
 import com.test.demo.model.User;
 import com.test.demo.repository.SurveyRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -81,4 +82,10 @@ public class SurveyServiceImpl implements SurveyService {
         survey.setSubmittedAt(LocalDateTime.now());
         surveyRepository.save(survey);
     }
+
+    @Override
+    public List<Survey> getAllSurveysSubmitted() {
+        return surveyRepository.findAll();
+    }
+
 }
