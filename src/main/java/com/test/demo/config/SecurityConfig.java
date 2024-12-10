@@ -45,7 +45,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/register", "/verify-email", "/login","/main.css", "flowbite.js").permitAll()
-                        .requestMatchers("/survey", "/survey/**").hasAnyAuthority("DEFAULT", "ADMIN")
+                        .requestMatchers("/survey", "/survey/**").hasAuthority("DEFAULT")
                         .requestMatchers("/admin").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )
