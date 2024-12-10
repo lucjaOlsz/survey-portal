@@ -10,15 +10,9 @@ services:
     env_file:
       - .env
 
-  frontend:
-    image: frontend-build
-    build:
-      context: ./src/main/frontend
-      dockerfile: Dockerfile
-
   webserver:
     build:
-      context: ngnix
+      context: nginx
       dockerfile: Dockerfile
     restart: always
     ports:
@@ -37,8 +31,8 @@ services:
       - "35729:35729"
     volumes:
       - .:/app
+      - static_vol:/app/src/main/resources/static
     depends_on:
-      - frontend
       - database
     env_file:
       - .env
@@ -46,3 +40,4 @@ services:
 
 volumes:
     db:
+    static_vol:
