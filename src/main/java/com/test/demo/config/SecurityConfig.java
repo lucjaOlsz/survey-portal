@@ -13,8 +13,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
-import static org.springframework.security.config.Customizer.withDefaults;
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -42,13 +40,13 @@ public class SecurityConfig {
     }
 
 
-    /// TODO: REFACTOR THIS METHOD
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/register", "/verify-email", "/login","/main.css", "flowbite.js").permitAll()
-                        .requestMatchers("/survey/").hasRole("DEFAULT")
+                        .requestMatchers("/survey", "/survey/**").hasAnyAuthority("DEFAULT", "ADMIN")
+                        .requestMatchers("/admin").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
@@ -61,9 +59,7 @@ public class SecurityConfig {
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout")
                         .permitAll()
-                )
-                .httpBasic(withDefaults());
-
+                );
         return http.build();
     }
 }

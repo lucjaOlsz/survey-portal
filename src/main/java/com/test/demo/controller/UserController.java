@@ -5,6 +5,7 @@ import com.test.demo.service.auth.UserServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.stereotype.Controller;
@@ -83,8 +84,8 @@ public class UserController {
     }
 
     @RequestMapping("/pre-home")
-    public String defaultAfterLogin(HttpServletRequest request) {
-        if (request.isUserInRole("ROLE_ADMIN")) {
+    public String defaultAfterLogin(Authentication authentication) {
+        if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ADMIN"))) {
             return "redirect:/admin";
         }
         return "redirect:/";
