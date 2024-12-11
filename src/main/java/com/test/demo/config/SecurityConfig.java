@@ -44,7 +44,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/register", "/verify-email", "/login","/main.css", "flowbite.js").permitAll()
+                        .requestMatchers("/register", "/verify-email", "/login", "/forgot-password", "/reset-password*","/main.css", "flowbite.js").permitAll()
                         .requestMatchers("/survey", "/survey/**").hasAuthority("DEFAULT")
                         .requestMatchers("/admin").hasAuthority("ADMIN")
                         .anyRequest().authenticated()

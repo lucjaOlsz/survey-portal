@@ -1,5 +1,7 @@
 package com.test.demo.controller;
 
+import com.test.demo.dto.EmailDTO;
+import com.test.demo.dto.ResetPasswordDTO;
 import com.test.demo.dto.UserDTO;
 import com.test.demo.service.auth.UserServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
@@ -101,5 +103,58 @@ public class UserController {
         /* handling messages with redirects is not the best practice, why? */
         return "redirect:/login";
     }
+
+    @GetMapping("/forgot-password")
+    public String showForgotPasswordForm(Model model) {
+        model.addAttribute("emailDTO", new EmailDTO());
+        return "forgotPassword";
+    }
+
+    @PostMapping("/forgot-password")
+    public String handleForgotPassword(@ModelAttribute @Valid EmailDTO emailDTO, BindingResult bindingResult, Model model) {
+        if (bindingResult.hasErrors()) {
+            return "forgotPassword";
+        }
+
+        try {
+            userService.sendResetPasswordEmail(emailDTO.getEmail());
+            model.addAttribute("successMessage", "Email sent successfully!");
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", e.getMessage());
+        }
+
+        return "forgotPassword";
+    }
+
+    @GetMapping("/reset-password")
+    public String showResetPasswordForm(@RequestParam("token") String token, Model model) {
+        model.addAttribute("token", token);
+        model.addAttribute("resetPasswordDTO", new ResetPasswordDTO());
+        return "resetPasswordForm";
+    }
+
+    @PostMapping("/reset-password")
+    public String handleResetPassword(@RequestParam("token") String token,
+                                      @ModelAttribute @Valid ResetPasswordDTO resetPasswordDTO,
+                                      BindingResult bindingResult, Model model) {
+        if (!resetPasswordDTO.getPassword().equals(resetPasswordDTO.getConfirmPassword())) {
+            bindingResult.rejectValue("confirmPassword", "error.user", "Passwords do not match");
+        }
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("token", token);
+            return "resetPasswordForm";
+        }
+
+        try {
+            userService.resetPassword(token, resetPasswordDTO.getPassword());
+            model.addAttribute("successMessage", "Password reset successfully!");
+            return "login";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            return "resetPasswordForm";
+        }
+    }
+
 
 }

@@ -8,8 +8,7 @@ import com.test.demo.model.User;
 import com.test.demo.repository.RoleRepository;
 import com.test.demo.repository.UserRepository;
 import com.test.demo.service.email.EmailService;
-import com.test.demo.service.email.EmailStrategy;
-import com.test.demo.service.email.implementations.VerificationEmailStrategy;
+import com.test.demo.service.email.implementations.ResetPasswordEmailStrategy;
 import com.test.demo.utils.VerificationToken;
 import jakarta.mail.MessagingException;
 import lombok.AllArgsConstructor;
@@ -87,5 +86,42 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
         return true;
     }
+    @Override
+    public void sendResetPasswordEmail(String email) throws MessagingException {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("No user found with email: " + email));
+
+        // Tworzymy VerificationToken
+        VerificationToken token = VerificationToken.create(user);
+        String encodedToken = token.encode();
+
+        // Generujemy link do resetowania hasła
+        String resetLink = "http://localhost/reset-password?token=" + encodedToken;
+
+        // Wysyłamy email z linkiem do resetowania hasła
+        emailService.sendEmail(new ResetPasswordEmailStrategy(user, resetLink), user.getEmail());
+    }
+
+
+
+    @Override
+    public void resetPassword(String token, String password) {
+        VerificationToken verificationToken = VerificationToken.parse(token);
+
+        // Sprawdź ważność tokenu
+        if (!verificationToken.isValid()) {
+            throw new InvalidTokenException("Invalid or expired token");
+        }
+
+        // Pobierz email z tokenu i użytkownika
+        String email = verificationToken.email();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found for the provided token"));
+
+        // Zmień hasło użytkownika
+        user.setPassword(passwordEncoder.encode(password));
+        userRepository.save(user);
+    }
+
 
 }
